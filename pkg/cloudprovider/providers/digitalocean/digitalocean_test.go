@@ -62,3 +62,34 @@ func TestNewDigitalOcean(t *testing.T) {
 		t.Fatalf("Failed to construct/authenticate Digitalocean: %s", err)
 	}
 }
+func TestInstances(t *testing.T) {
+	cfg, ok := configFromEnv()
+	if !ok {
+		t.Skipf("No config found in environment")
+	}
+
+	do, err := newDigitalOcean(cfg)
+	if err != nil {
+		t.Fatalf("Failed to construct/authenticate Digitalocean: %s", err)
+	}
+
+	i, ok := do.Instances()
+	if !ok {
+		t.Fatalf("Instances() returned false")
+	}
+
+	srvs, err := i.List(".")
+	if err != nil {
+		t.Fatalf("Instances.List() failed: %s", err)
+	}
+	if len(srvs) == 0 {
+		t.Fatalf("Instances.List() returned zero servers")
+	}
+	t.Logf("Found servers (%d): %s\n", len(srvs), srvs)
+
+	addrs, err := i.NodeAddresses(srvs[0])
+	if err != nil {
+		t.Fatalf("Instances.NodeAddresses(%s) failed: %s", srvs[0], err)
+	}
+	t.Logf("Found NodeAddresses(%s) = %s\n", srvs[0], addrs)
+}

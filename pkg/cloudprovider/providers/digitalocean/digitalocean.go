@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	"gopkg.in/gcfg.v1"
 
@@ -130,6 +131,13 @@ func (do *DigitalOcean) ScrubDNS(nameservers, searches []string) (nsOut, srchOut
 func (do *DigitalOcean) ProviderName() string {
 	return ProviderName
 }
+// helper func
+func min(a, b int) int {
+    if a < b {
+        return a
+    }
+    return b
+}
 func (do *DigitalOcean) findDroplet(name types.NodeName) (*godo.Droplet, error) {
 	listOptions := &godo.ListOptions{
 		Page: 1,
@@ -140,11 +148,29 @@ func (do *DigitalOcean) findDroplet(name types.NodeName) (*godo.Droplet, error) 
 		return nil, err
   }
 	for i := 0; i < len(droplets); i++ {
-		if(string(name) == droplets[i].Name || string(name)+"-" == droplets[i].Name[:len(name)]+"-") {
+		length := min(len(name), len(droplets[i].Name))
+		if(string(name) == droplets[i].Name || string(name)+"-" == droplets[i].Name[:length]+"-") {
 			return &droplets[i], nil
 		}
 	}
 	return nil, ErrNotFound
+}
+func (do *DigitalOcean) findDropletByFilter(filter string) ([]types.NodeName, error) {
+	list := []types.NodeName{}
+	listOptions := &godo.ListOptions{
+		Page: 1,
+		PerPage: 200,
+	}
+  droplets, _, err := do.provider.Droplets.List(listOptions)
+  if err != nil {
+		return nil, err
+  }
+	for i := 0; i < len(droplets); i++ {
+		if(strings.Contains(droplets[i].Name, filter)) {
+			list = append(list, types.NodeName(droplets[i].Name))
+		}
+	}
+	return list, nil
 }
 func (do *DigitalOcean) NodeAddresses(name types.NodeName) ([]api.NodeAddress, error) {
 	addresses := []api.NodeAddress{}
@@ -172,5 +198,41 @@ func (do *DigitalOcean) ExternalID(nodeName types.NodeName) (string, error) {
 		return "", cloudprovider.InstanceNotFound
   } else {
 		return string(droplet.ID), nil
+	}
+}
+func (do *DigitalOcean) InstanceID(nodeName types.NodeName) (string, error) {
+	droplet, err := do.findDroplet(nodeName);
+  if err != nil {
+		return "", cloudprovider.InstanceNotFound
+  } else {
+		return string(droplet.ID), nil
+	}
+}
+func (do *DigitalOcean) InstanceType(nodeName types.NodeName) (string, error) {
+	droplet, err := do.findDroplet(nodeName);
+  if err != nil {
+		return "", cloudprovider.InstanceNotFound
+  } else {
+		return droplet.Size.Slug, nil
+	}
+}
+func (do *DigitalOcean) List(filter string) ([]types.NodeName, error) {
+	list, err := do.findDropletByFilter(filter);
+  if err != nil {
+		return nil, cloudprovider.InstanceNotFound
+  } else {
+		return list, nil
+	}
+}
+// AddSSHKeyToAllInstances is currently unimplemented
+func (do *DigitalOcean) AddSSHKeyToAllInstances(user string, keyData []byte) error {
+  return errors.New("unimplemented")
+}
+func (do *DigitalOcean) CurrentNodeName(hostname string) (types.NodeName, error) {
+	droplet, err := do.findDroplet(types.NodeName(hostname));
+  if err != nil {
+		return "", cloudprovider.InstanceNotFound
+  } else {
+		return types.NodeName(droplet.Name), nil
 	}
 }
