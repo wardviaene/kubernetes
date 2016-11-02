@@ -682,7 +682,7 @@ func validateVolumeSource(source *api.VolumeSource, fldPath *field.Path) field.E
 			allErrs = append(allErrs, field.Forbidden(fldPath.Child("digitaloceanVolume"), "may not specify more than 1 volume type"))
 		} else {
 			numVolumes++
-			allErrs = append(allErrs, validateDigitalOceanVolumeVolumeSource(source.DigitalOceanVolume, fldPath.Child("digitaloceanVolume"))...)
+			allErrs = append(allErrs, validateDigitalOceanVolumeSource(source.DigitalOceanVolume, fldPath.Child("digitaloceanVolume"))...)
 		}
 	}
 
