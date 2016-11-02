@@ -149,7 +149,7 @@ func (do *DigitalOcean) GetAttachmentVolumePath(instanceID int, volumeID string)
 }
 
 // query if a volume is attached to a compute instance
-func (do *DigitalOcean) DiskIsAttached(volumeID string, instanceID int) (bool, error) {
+func (do *DigitalOcean) VolumeIsAttached(volumeID string, instanceID int) (bool, error) {
 	volume, err := do.getVolume(volumeID)
 	if err != nil {
 		return false, err
@@ -167,7 +167,7 @@ func (do *DigitalOcean) DiskIsAttached(volumeID string, instanceID int) (bool, e
 }
 
 // query if a list of volumes are attached to a compute instance
-func (do *DigitalOcean) DisksAreAttached(volumeIDs []string, instanceID int) (map[string]bool, error) {
+func (do *DigitalOcean) VolumesAreAttached(volumeIDs []string, instanceID int) (map[string]bool, error) {
 	attached := make(map[string]bool)
 	for _, volumeID := range volumeIDs {
 		attached[volumeID] = false

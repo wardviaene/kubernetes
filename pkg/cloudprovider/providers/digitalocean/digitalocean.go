@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"strings"
 
 	"gopkg.in/gcfg.v1"
@@ -28,6 +29,7 @@ import (
   "golang.org/x/oauth2"
 
 
+  "github.com/golang/glog"
 	"k8s.io/kubernetes/pkg/cloudprovider"
   "k8s.io/kubernetes/pkg/types"
   "k8s.io/kubernetes/pkg/api"
@@ -43,6 +45,7 @@ var ErrAttrNotFound = errors.New("Expected attribute not found")
 type DigitalOcean struct {
 	provider *godo.Client
 	region   string
+	localInstanceID string
 }
 
 type Config struct {
@@ -96,17 +99,34 @@ func newDigitalOcean(cfg Config) (*DigitalOcean, error) {
   if err != nil {
 		return nil, err
   }
-
+	localInstanceID, _ := readInstanceID()
 	do := DigitalOcean{
 		provider: provider,
 		region:   cfg.Global.Region,
+		localInstanceID: localInstanceID,
 	}
+
 
 	return &do, nil
 }
 
 func (do *DigitalOcean) Clusters() (cloudprovider.Clusters, bool) {
 	return nil, false
+}
+func readInstanceID() (string, error) {
+	// FIXME: Try to find instance ID on the local filesyste
+	const instanceIDFile = "/var/lib/cloud/data/instance-id"
+	idBytes, err := ioutil.ReadFile(instanceIDFile)
+	if err == nil {
+		instanceID := string(idBytes)
+		instanceID = strings.TrimSpace(instanceID)
+		glog.V(3).Infof("Got instance id from %s: %s", instanceIDFile, instanceID)
+		if instanceID != "" {
+			return instanceID, nil
+		}
+		// Fall through to metadata server lookup
+	}
+	return "unknown", nil
 }
 
 
@@ -200,6 +220,7 @@ func (do *DigitalOcean) ExternalID(nodeName types.NodeName) (string, error) {
 		return string(droplet.ID), nil
 	}
 }
+
 func (do *DigitalOcean) InstanceID(nodeName types.NodeName) (string, error) {
 	droplet, err := do.findDroplet(nodeName);
   if err != nil {
@@ -208,6 +229,10 @@ func (do *DigitalOcean) InstanceID(nodeName types.NodeName) (string, error) {
 		return string(droplet.ID), nil
 	}
 }
+func (do *DigitalOcean) LocalInstanceID() (string, error) {
+  return do.localInstanceID, nil
+}
+
 func (do *DigitalOcean) InstanceType(nodeName types.NodeName) (string, error) {
 	droplet, err := do.findDroplet(nodeName);
   if err != nil {
@@ -235,4 +260,8 @@ func (do *DigitalOcean) CurrentNodeName(hostname string) (types.NodeName, error)
   } else {
 		return types.NodeName(droplet.Name), nil
 	}
+}
+
+func (do *DigitalOcean) GetRegion() string {
+	return do.region
 }
