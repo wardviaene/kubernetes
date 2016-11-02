@@ -85,6 +85,7 @@ type cdManager interface {
 
 func (plugin *doVolumePlugin) Init(host volume.VolumeHost) error {
 	plugin.host = host
+  plugin.volumeLocks = keymutex.NewKeyMutex()
 	return nil
 }
 
@@ -481,6 +482,7 @@ func (plugin *doVolumePlugin) newDeleterInternal(spec *volume.Spec, manager cdMa
     &doVolume{
       volName: spec.Name(),
       pdName:  spec.PersistentVolume.Spec.DigitalOceanVolume.VolumeID,
+      manager: manager,
       plugin:  plugin,
     }}, nil
 }
@@ -492,6 +494,7 @@ func (plugin *doVolumePlugin) NewProvisioner(options volume.VolumeOptions) (volu
 func (plugin *doVolumePlugin) newProvisionerInternal(options volume.VolumeOptions, manager cdManager) (volume.Provisioner, error) {
   return &doVolumeProvisioner{
     doVolume: &doVolume{
+      manager: manager,
       plugin:  plugin,
     },
     options: options,

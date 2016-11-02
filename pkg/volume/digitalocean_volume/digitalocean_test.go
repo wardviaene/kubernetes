@@ -136,7 +136,7 @@ func TestPlugin(t *testing.T) {
 	plugMgr := volume.VolumePluginMgr{}
 	plugMgr.InitPlugins(ProbeVolumePlugins(), volumetest.NewFakeVolumeHost(tmpDir, nil, nil, "" /* rootContext */))
 
-	plug, err := plugMgr.FindPluginByName("kubernetes.io/digitalocean")
+	plug, err := plugMgr.FindPluginByName("kubernetes.io/digitalocean-volume")
 	if err != nil {
 		t.Errorf("Can't find the plugin by name")
 	}
@@ -156,7 +156,7 @@ func TestPlugin(t *testing.T) {
 	if mounter == nil {
 		t.Errorf("Got a nil Mounter")
 	}
-	volPath := path.Join(tmpDir, "pods/poduid/volumes/kubernetes.io~digitalocean/vol1")
+	volPath := path.Join(tmpDir, "pods/poduid/volumes/kubernetes.io~digitalocean-volume/vol1")
 	path := mounter.GetPath()
 	if path != volPath {
 		t.Errorf("Got unexpected path: %s", path)
