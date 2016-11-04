@@ -339,6 +339,17 @@ func (DeleteOptions) SwaggerDoc() map[string]string {
 	return map_DeleteOptions
 }
 
+var map_DigitalOceanVolumeSource = map[string]string{
+	"":         "Represents a digitalocean volume resource.",
+	"volumeID": "volume id used to identify the volume in digitalocean More info: http://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md",
+	"fsType":   "Filesystem type to mount. Must be a filesystem type supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". Implicitly inferred to be \"ext4\" if unspecified.",
+	"readOnly": "Optional: Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts.",
+}
+
+func (DigitalOceanVolumeSource) SwaggerDoc() map[string]string {
+	return map_DigitalOceanVolumeSource
+}
+
 var map_DownwardAPIVolumeFile = map[string]string{
 	"":                 "DownwardAPIVolumeFile represents information to create the file containing the pod field",
 	"path":             "Required: Path is  the relative path name of the file to be created. Must not be absolute or contain the '..' path. Must be utf-8 encoded. The first item of the relative path must not start with '..'",

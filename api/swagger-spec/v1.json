@@ -17658,6 +17658,10 @@
       "$ref": "v1.PhotonPersistentDiskVolumeSource",
       "description": "PhotonPersistentDisk represents a PhotonController persistent disk attached and mounted on kubelets host machine"
      },
+     "digitaloceanVolume": {
+      "$ref": "v1.DigitalOceanVolumeSource",
+      "description": "DigitalOceanVolumeSource represents a DigitalOceanVolume attached and mounted on kubelets host machine"
+     },
      "accessModes": {
       "type": "array",
       "items": {
@@ -18125,6 +18129,26 @@
      }
     }
    },
+   "v1.DigitalOceanVolumeSource": {
+    "id": "v1.DigitalOceanVolumeSource",
+    "required": [
+     "volumeID"
+    ],
+    "properties": {
+     "volumeID": {
+      "type": "string",
+      "description": "ID that identifies the DigitalOcean Volume"
+     },
+     "fsType": {
+      "type": "string",
+      "description": "Filesystem type to mount. Must be a filesystem type supported by the host operating system. Ex. \"ext4\", \"xfs\", \"ntfs\". Implicitly inferred to be \"ext4\" if unspecified."
+     },
+     "readOnly": {
+      "type": "boolean",
+      "description": "Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in the Volume."
+     }
+    }
+   },
    "v1.PersistentVolumeStatus": {
     "id": "v1.PersistentVolumeStatus",
     "description": "PersistentVolumeStatus is the current status of a persistent volume.",
@@ -18387,6 +18411,10 @@
      "photonPersistentDisk": {
       "$ref": "v1.PhotonPersistentDiskVolumeSource",
       "description": "PhotonPersistentDisk represents a PhotonController persistent disk attached and mounted on kubelets host machine"
+     },
+     "digitaloceanVolume": {
+      "$ref": "v1.DigitalOceanVolumeSource",
+      "description": "DigitalOceanVolumeSource represents a DigitalOcean Volume attached and mounted on kubelets host machine"
      }
     }
    },

@@ -44,6 +44,10 @@ func TestCanSupport(t *testing.T) {
 	if err != nil {
 		t.Errorf("Can't find the plugin by name")
 	}
+	_, err = plugMgr.FindPluginBySpec(&volume.Spec{Volume: &api.Volume{VolumeSource: api.VolumeSource{DigitalOceanVolume: &api.DigitalOceanVolumeSource{}}}})
+	if err != nil {
+		t.Errorf("Can't find the plugin by spec")
+	}
 	if plug.GetPluginName() != "kubernetes.io/digitalocean-volume" {
 		t.Errorf("Wrong name: %s", plug.GetPluginName())
 	}
