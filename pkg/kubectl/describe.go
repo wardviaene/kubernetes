@@ -795,6 +795,8 @@ func (d *PersistentVolumeDescriber) Describe(namespace, name string, describerSe
 			printAzureDiskVolumeSource(pv.Spec.AzureDisk, out)
 		case pv.Spec.PhotonPersistentDisk != nil:
 			printPhotonPersistentDiskVolumeSource(pv.Spec.PhotonPersistentDisk, out)
+		case pv.Spec.DigitalOceanVolume != nil:
+			printDigitalOceanVolumeSource(pv.Spec.DigitalOceanVolume, out)
 		}
 
 		if events != nil {

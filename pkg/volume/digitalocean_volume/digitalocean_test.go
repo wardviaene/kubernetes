@@ -48,6 +48,13 @@ func TestCanSupport(t *testing.T) {
 	if err != nil {
 		t.Errorf("Can't find the plugin by spec")
 	}
+	plug, err = plugMgr.FindAttachablePluginBySpec(&volume.Spec{Volume: &api.Volume{VolumeSource: api.VolumeSource{DigitalOceanVolume: &api.DigitalOceanVolumeSource{}}}})
+	if err != nil {
+		t.Errorf("Can't find the plugin by attachable spec")
+	}
+	if plug == nil {
+		t.Errorf("Plugin doens't support to be attachable")
+	}
 	if plug.GetPluginName() != "kubernetes.io/digitalocean-volume" {
 		t.Errorf("Wrong name: %s", plug.GetPluginName())
 	}

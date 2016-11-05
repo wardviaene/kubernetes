@@ -2116,6 +2116,7 @@
     },
    "v1.DigitalOceanVolumeSource": {
     "id": "v1.DigitalOceanVolumeSource",
+    "description": "Represents a digitalocean volume resource.",
     "required": [
      "volumeID"
     ],

@@ -78,6 +78,7 @@ func (util *DoDiskUtil) AttachVolume(d *doVolumeMounter, globalPDPath string) er
 	if err != nil {
 		return err
 	}
+	glog.V(4).Infof("Attaching Volume: %v to %d", d.pdName, intInstanceID)
 	diskid, err := cloud.AttachVolume(intInstanceID, d.pdName)
 	if err != nil {
 		return err

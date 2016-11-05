@@ -8883,6 +8883,7 @@
     },
    "v1.DigitalOceanVolumeSource": {
     "id": "v1.DigitalOceanVolumeSource",
+    "description": "Represents a digitalocean volume resource.",
     "required": [
      "volumeID"
     ],
@@ -8897,8 +8898,7 @@
      },
      "readOnly": {
       "type": "boolean",
-      "description": "Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in the Volume."
-     }
+      "description": "Optional: Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts."
     }
    },
    "v1.Container": {

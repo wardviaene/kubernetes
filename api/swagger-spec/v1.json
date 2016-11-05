@@ -18131,6 +18131,7 @@
    },
    "v1.DigitalOceanVolumeSource": {
     "id": "v1.DigitalOceanVolumeSource",
+    "description": "Represents a digitalocean volume resource.",
     "required": [
      "volumeID"
     ],
@@ -18414,7 +18415,11 @@
      },
      "digitaloceanVolume": {
       "$ref": "v1.DigitalOceanVolumeSource",
+<<<<<<< 961dc1338a93f22348631c31821c657d0f114d8b
       "description": "DigitalOceanVolumeSource represents a DigitalOcean Volume attached and mounted on kubelets host machine"
+=======
+      "description": "DigitalOceanVolume represents an DigitalOcean Volume mount on the host and bind mount to the pod."
+>>>>>>> ran swagger spec, updated BUILD files and references
      }
     }
    },

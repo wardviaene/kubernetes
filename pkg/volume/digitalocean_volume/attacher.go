@@ -252,7 +252,7 @@ func (detacher *doVolumeDetacher) Detach(deviceMountPath string, nodeName types.
 	volumeID := path.Base(deviceMountPath)
 	instances, res := detacher.doProvider.Instances()
 	if !res {
-		return fmt.Errorf("failed to list openstack instances")
+		return fmt.Errorf("failed to list digitalocean instances")
 	}
 	instanceID, err := instances.InstanceID(nodeName)
   intInstanceID, _ := strconv.Atoi(instanceID)
