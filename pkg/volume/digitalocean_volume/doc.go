@@ -14,5 +14,5 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package digitalocean-volume contains the internal representation of digitalocean volumes.
-package digitalocean-volume // import "k8s.io/kubernetes/pkg/volume/digitalocean-volume"
+// Package digitalocean_volume contains the internal representation of digitalocean volumes.
+package digitalocean_volume // import "k8s.io/kubernetes/pkg/volume/digitalocean_volume"
