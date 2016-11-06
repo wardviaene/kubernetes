@@ -22,6 +22,7 @@ import (
 	"io"
 	"io/ioutil"
 	"strings"
+	"strconv"
 
 	"gopkg.in/gcfg.v1"
 
@@ -50,8 +51,8 @@ type DigitalOcean struct {
 
 type Config struct {
 	Global struct {
-		ApiKey     string
-		Region     string
+		ApiKey     string `gcfg:"apikey"`
+		Region     string `gcfg:"region"`
 	}
 }
 
@@ -168,8 +169,15 @@ func (do *DigitalOcean) findDroplet(name types.NodeName) (*godo.Droplet, error) 
 		return nil, err
   }
 	for i := 0; i < len(droplets); i++ {
-		length := min(len(name), len(droplets[i].Name))
-		if(string(name) == droplets[i].Name || string(name)+"-" == droplets[i].Name[:length]+"-") {
+		if strings.ToLower(string(name)) == strings.ToLower(droplets[i].Name) {
+			return &droplets[i], nil
+		}
+		ipv4, err := droplets[i].PrivateIPv4()
+		if err == nil && string(name) == ipv4 {
+			return &droplets[i], nil
+		}
+		ipv4, err = droplets[i].PublicIPv4()
+		if err == nil && string(name) == ipv4 {
 			return &droplets[i], nil
 		}
 	}
@@ -217,7 +225,7 @@ func (do *DigitalOcean) ExternalID(nodeName types.NodeName) (string, error) {
   if err != nil {
 		return "", cloudprovider.InstanceNotFound
   } else {
-		return string(droplet.ID), nil
+		return strconv.Itoa(droplet.ID), nil
 	}
 }
 
@@ -226,7 +234,7 @@ func (do *DigitalOcean) InstanceID(nodeName types.NodeName) (string, error) {
   if err != nil {
 		return "", cloudprovider.InstanceNotFound
   } else {
-		return string(droplet.ID), nil
+		return strconv.Itoa(droplet.ID), nil
 	}
 }
 func (do *DigitalOcean) LocalInstanceID() (string, error) {
@@ -258,7 +266,7 @@ func (do *DigitalOcean) CurrentNodeName(hostname string) (types.NodeName, error)
   if err != nil {
 		return "", cloudprovider.InstanceNotFound
   } else {
-		return types.NodeName(droplet.Name), nil
+		return types.NodeName(strings.ToLower(droplet.Name)), nil
 	}
 }
 

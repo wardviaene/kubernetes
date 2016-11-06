@@ -21,11 +21,14 @@ import (
 	"io/ioutil"
 	"path"
 	"strings"
+	"errors"
 
 	"github.com/digitalocean/godo"
 	"github.com/golang/glog"
 	"k8s.io/kubernetes/pkg/volume"
 )
+
+var ErrVolumeNotFound = errors.New("Failed to find volume")
 
 
 // Create a volume of given size (in GiB)
@@ -77,13 +80,14 @@ func (do *DigitalOcean) volumeIsUsed(volumeID string) (bool, error) {
 
 // Attaches given DigitalOcean volume
 func (do *DigitalOcean) AttachVolume(instanceID int, volumeID string) (string, error) {
-	_, _, err := do.provider.StorageActions.Attach(volumeID, instanceID)
+	volume, err := do.getVolume(volumeID)
 	if err != nil {
+		glog.Errorf("Failed to get volume: %s", volumeID)
 		return "", err
 	}
-
+	_, _, err = do.provider.StorageActions.Attach(volume.ID, instanceID)
 	if err != nil {
-		glog.Errorf("Failed to attach %s volume to %s compute", volumeID, instanceID)
+		glog.Errorf("Failed to attach %s (%s) volume to %s compute", volumeID, volume.ID, instanceID)
 		return "", err
 	}
 	glog.V(2).Infof("Successfully attached %s volume to %s compute", volumeID, instanceID)
@@ -102,12 +106,22 @@ func (do *DigitalOcean) DetachVolume(instanceID int, volumeID string) error {
 }
 
 func (do *DigitalOcean) getVolume(volumeID string) (*godo.Volume, error) {
-	volume, _, err := do.provider.Storage.GetVolume(volumeID)
+	listOptions := &godo.ListOptions{
+		Page: 1,
+		PerPage: 200,
+	}
+	volumes, _, err := do.provider.Storage.ListVolumes(listOptions)
 	if err != nil {
 		glog.Errorf("Error occurred getting volume: %s", volumeID)
-		return volume, err
+		return nil, err
 	}
-	return volume, err
+	for _, volume := range volumes {
+		if volume.Name == volumeID {
+			return &volume, nil
+		}
+	}
+	glog.Errorf("Volume not found: %s", volumeID)
+	return nil, ErrVolumeNotFound
 }
 
 
