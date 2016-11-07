@@ -81,8 +81,10 @@ func (do *DigitalOcean) volumeIsUsed(volumeID string) (bool, error) {
 // Attaches given DigitalOcean volume
 func (do *DigitalOcean) AttachVolume(instanceID int, volumeID string) (string, error) {
 	volume, err := do.getVolume(volumeID)
+	// volumeID = kubernetes volume ID
+	// volume.ID = DigitalOcean volume ID
 	if err != nil {
-		glog.Errorf("Failed to get volume: %s", volumeID)
+		glog.Errorf("Failed to get DigitalOcean volume for volume: %s", volumeID)
 		return "", err
 	}
 	_, _, err = do.provider.StorageActions.Attach(volume.ID, instanceID)
@@ -91,17 +93,22 @@ func (do *DigitalOcean) AttachVolume(instanceID int, volumeID string) (string, e
 		return "", err
 	}
 	glog.V(2).Infof("Successfully attached %s volume to %s compute", volumeID, instanceID)
-	return volumeID, nil
+	return volume.ID, nil
 }
 
-// Detaches given cinder volume from the compute running kubelet
+// Detaches given DigitalOcean volume from the compute running kubelet
 func (do *DigitalOcean) DetachVolume(instanceID int, volumeID string) error {
-	_, _, err := do.provider.StorageActions.Detach(volumeID)
+	volume, err := do.getVolume(volumeID)
 	if err != nil {
-		glog.Errorf("Failed to detach %s volume", volumeID)
+		glog.Errorf("Failed to get DigitalOcean volume for volume: %s", volumeID)
 		return err
 	}
-	glog.V(2).Infof("Successfully detached %s volume", volumeID)
+	_, _, err = do.provider.StorageActions.Detach(volume.ID)
+	if err != nil {
+		glog.Errorf("Failed to detach %s (%s) volume", volumeID, volume.ID)
+		return err
+	}
+	glog.V(2).Infof("Successfully detached %s (%s) volume", volumeID, volume.ID)
 	return nil
 }
 
@@ -146,18 +153,6 @@ func (do *DigitalOcean) GetAttachmentVolumePath(instanceID int, volumeID string)
 	volume, err := do.getVolume(volumeID)
 	if err != nil {
 		return "", err
-	}
-	if len(volume.DropletIDs) == 0 {
-		return "", fmt.Errorf("volume %s is not attached to %d", volumeID, instanceID)
-	}
-	attached := false
-	for _, i := range volume.DropletIDs {
-		if(i == instanceID) {
-			attached = true
-		}
-  }
-	if(!attached) {
-		return "", fmt.Errorf("volume %s is not attached to %d", volumeID, instanceID)
 	}
 	return "/dev/disk/by-id/scsi-0DO_Volume_"+volume.Name, nil
 }

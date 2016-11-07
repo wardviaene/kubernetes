@@ -78,7 +78,7 @@ func init() {
 
 func readConfig(config io.Reader) (Config, error) {
 	if config == nil {
-		err := fmt.Errorf("no DigitalOcean cloud provider config file given")
+		err := fmt.Errorf("no DigitalOcean cloud provider config file given. Restart process with --cloud-provider=digitalocean --cloud-config=[path_to_config_file]")
 		return Config{}, err
 	}
 
@@ -288,7 +288,8 @@ func (do *DigitalOcean) buildSelfDOInstance() (*doInstance, error) {
 	// get region
 	resp, err := http.Get("http://169.254.169.254/metadata/v1/region")
 	if err != nil {
-    return nil, fmt.Errorf("error fetching region from metadata service: %v", err)
+		glog.V(2).Infof("error fetching region from metadata service: %v", err)
+    return nil, err
 	}
 	defer resp.Body.Close()
 	dropletRegion, err := ioutil.ReadAll(resp.Body)
@@ -296,13 +297,15 @@ func (do *DigitalOcean) buildSelfDOInstance() (*doInstance, error) {
 	// get droplet id
 	resp, err = http.Get("http://169.254.169.254/metadata/v1/id")
 	if err != nil {
-    return nil, fmt.Errorf("error fetching droplet id from metadata service: %v", err)
+		glog.V(2).Infof("error fetching droplet id from metadata service: %v", err)
+    return nil, err
 	}
 	defer resp.Body.Close()
 	dropletID, err := ioutil.ReadAll(resp.Body)
 	intDropletID, err := strconv.Atoi(string(dropletID))
 	if err != nil {
-    return nil, fmt.Errorf("DropletID is not valid: %v", err)
+		glog.V(2).Infof("dropletID is invalid")
+    return nil, err
 	}
 
 	self := &doInstance{
