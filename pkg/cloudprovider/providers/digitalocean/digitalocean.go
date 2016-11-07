@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"strings"
 	"strconv"
 
@@ -29,8 +30,7 @@ import (
 	"github.com/digitalocean/godo"
   "golang.org/x/oauth2"
 
-
-  "github.com/golang/glog"
+	"github.com/golang/glog"
 	"k8s.io/kubernetes/pkg/cloudprovider"
   "k8s.io/kubernetes/pkg/types"
   "k8s.io/kubernetes/pkg/api"
@@ -46,8 +46,17 @@ var ErrAttrNotFound = errors.New("Expected attribute not found")
 type DigitalOcean struct {
 	provider *godo.Client
 	region   string
-	localInstanceID string
+	selfDOInstance *doInstance
 }
+
+type doInstance struct {
+	// Local droplet ID
+  dropletID int
+
+  // region the instance resides in
+  region string
+}
+
 
 type Config struct {
 	Global struct {
@@ -100,13 +109,17 @@ func newDigitalOcean(cfg Config) (*DigitalOcean, error) {
   if err != nil {
 		return nil, err
   }
-	localInstanceID, _ := readInstanceID()
 	do := DigitalOcean{
 		provider: provider,
 		region:   cfg.Global.Region,
-		localInstanceID: localInstanceID,
 	}
 
+	// build self DigitalOcean Instance information
+  selfDOInstance, err := do.buildSelfDOInstance()
+  if err != nil {
+    return nil, err
+  }
+	glog.V(2).Infof("DigitalOcean Droplet region: %s, droplet ID: %d", selfDOInstance.region, selfDOInstance.dropletID)
 
 	return &do, nil
 }
@@ -114,22 +127,6 @@ func newDigitalOcean(cfg Config) (*DigitalOcean, error) {
 func (do *DigitalOcean) Clusters() (cloudprovider.Clusters, bool) {
 	return nil, false
 }
-func readInstanceID() (string, error) {
-	// FIXME: Try to find instance ID on the local filesyste
-	const instanceIDFile = "/var/lib/cloud/data/instance-id"
-	idBytes, err := ioutil.ReadFile(instanceIDFile)
-	if err == nil {
-		instanceID := string(idBytes)
-		instanceID = strings.TrimSpace(instanceID)
-		glog.V(3).Infof("Got instance id from %s: %s", instanceIDFile, instanceID)
-		if instanceID != "" {
-			return instanceID, nil
-		}
-		// Fall through to metadata server lookup
-	}
-	return "unknown", nil
-}
-
 
 // implementation of interfaces
 func (do *DigitalOcean) Instances() (cloudprovider.Instances, bool) {
@@ -139,7 +136,7 @@ func (do *DigitalOcean) LoadBalancer() (cloudprovider.LoadBalancer, bool) {
 	return nil, false
 }
 func (do *DigitalOcean) Zones() (cloudprovider.Zones, bool) {
-	return nil, false
+	return do, false
 }
 func (do *DigitalOcean) Routes() (cloudprovider.Routes, bool) {
 	return nil, false
@@ -238,7 +235,7 @@ func (do *DigitalOcean) InstanceID(nodeName types.NodeName) (string, error) {
 	}
 }
 func (do *DigitalOcean) LocalInstanceID() (string, error) {
-  return do.localInstanceID, nil
+  return strconv.Itoa(do.selfDOInstance.dropletID), nil
 }
 
 func (do *DigitalOcean) InstanceType(nodeName types.NodeName) (string, error) {
@@ -273,3 +270,45 @@ func (do *DigitalOcean) CurrentNodeName(hostname string) (types.NodeName, error)
 func (do *DigitalOcean) GetRegion() string {
 	return do.region
 }
+
+// Zones
+func (do *DigitalOcean) GetZone() (cloudprovider.Zone, error) {
+	return cloudprovider.Zone{
+		FailureDomain: do.selfDOInstance.region,
+		Region:        do.selfDOInstance.region,
+	}, nil
+}
+
+// metadata
+func (do *DigitalOcean) buildSelfDOInstance() (*doInstance, error) {
+  if do.selfDOInstance != nil {
+    panic("do not call buildSelfDOInstance directly")
+  }
+
+	// get region
+	resp, err := http.Get("http://169.254.169.254/metadata/v1/region")
+	if err != nil {
+    return nil, fmt.Errorf("error fetching region from metadata service: %v", err)
+	}
+	defer resp.Body.Close()
+	dropletRegion, err := ioutil.ReadAll(resp.Body)
+
+	// get droplet id
+	resp, err = http.Get("http://169.254.169.254/metadata/v1/id")
+	if err != nil {
+    return nil, fmt.Errorf("error fetching droplet id from metadata service: %v", err)
+	}
+	defer resp.Body.Close()
+	dropletID, err := ioutil.ReadAll(resp.Body)
+	intDropletID, err := strconv.Atoi(string(dropletID))
+	if err != nil {
+    return nil, fmt.Errorf("DropletID is not valid: %v", err)
+	}
+
+	self := &doInstance{
+		dropletID: intDropletID,
+		region: string(dropletRegion),
+	}
+  return self, nil
+}
+

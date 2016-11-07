@@ -193,7 +193,7 @@ func (attacher *doVolumeAttacher) GetDeviceMountPath(
 	if err != nil {
 		return "", err
 	}
-	return attacher.doProvider.GetDevicePath(volumeSource.VolumeID), nil
+	return makeGlobalPDName(attacher.host, volumeSource.VolumeID), nil
 }
 
 func (attacher *doVolumeAttacher) MountDevice(spec *volume.Spec, devicePath string, deviceMountPath string) error {

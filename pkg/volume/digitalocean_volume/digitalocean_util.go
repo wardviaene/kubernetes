@@ -79,7 +79,7 @@ func (util *DoDiskUtil) AttachVolume(d *doVolumeMounter, globalPDPath string) er
 		return err
 	}
 	glog.V(4).Infof("Attaching Volume: %v to %d", d.pdName, intInstanceID)
-	diskid, err := cloud.AttachVolume(intInstanceID, d.pdName)
+	volumeID, err := cloud.AttachVolume(intInstanceID, d.pdName)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (util *DoDiskUtil) AttachVolume(d *doVolumeMounter, globalPDPath string) er
 	var devicePath string
 	numTries := 0
 	for {
-		devicePath = cloud.GetDevicePath(diskid)
+		devicePath = cloud.GetDevicePath(volumeID)
 		probeAttachedVolume()
 
 		_, err := os.Stat(devicePath)
