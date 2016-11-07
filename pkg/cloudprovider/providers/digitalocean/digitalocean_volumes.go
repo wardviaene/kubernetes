@@ -17,11 +17,11 @@ limitations under the License.
 package digitalocean
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"path"
 	"strings"
-	"errors"
 
 	"github.com/digitalocean/godo"
 	"github.com/golang/glog"
@@ -30,13 +30,12 @@ import (
 
 var ErrVolumeNotFound = errors.New("Failed to find volume")
 
-
 // Create a volume of given size (in GiB)
 func (do *DigitalOcean) CreateVolume(region string, name string, description string, sizeGigaBytes int64) (volumeName string, err error) {
 	volumeCreateRequest := godo.VolumeCreateRequest{
-		Region: region,
-		Name: name,
-		Description: description,
+		Region:        region,
+		Name:          name,
+		Description:   description,
 		SizeGigaBytes: sizeGigaBytes,
 	}
 	vol, _, err := do.provider.Storage.CreateVolume(&volumeCreateRequest)
@@ -114,7 +113,7 @@ func (do *DigitalOcean) DetachVolume(instanceID int, volumeID string) error {
 
 func (do *DigitalOcean) getVolume(volumeID string) (*godo.Volume, error) {
 	listOptions := &godo.ListOptions{
-		Page: 1,
+		Page:    1,
 		PerPage: 200,
 	}
 	volumes, _, err := do.provider.Storage.ListVolumes(listOptions)
@@ -130,7 +129,6 @@ func (do *DigitalOcean) getVolume(volumeID string) (*godo.Volume, error) {
 	glog.Errorf("Volume not found: %s", volumeID)
 	return nil, ErrVolumeNotFound
 }
-
 
 // GetDevicePath returns the path of an attached block storage volume, specified by its id.
 func (do *DigitalOcean) GetDevicePath(volumeId string) string {
@@ -154,7 +152,7 @@ func (do *DigitalOcean) GetAttachmentVolumePath(instanceID int, volumeID string)
 	if err != nil {
 		return "", err
 	}
-	return "/dev/disk/by-id/scsi-0DO_Volume_"+volume.Name, nil
+	return "/dev/disk/by-id/scsi-0DO_Volume_" + volume.Name, nil
 }
 
 // query if a volume is attached to a compute instance
@@ -168,10 +166,10 @@ func (do *DigitalOcean) VolumeIsAttached(volumeID string, instanceID int) (bool,
 	}
 	attached := false
 	for _, i := range volume.DropletIDs {
-		if(i == instanceID) {
+		if i == instanceID {
 			attached = true
 		}
-  }
+	}
 	return attached, nil
 }
 
@@ -187,11 +185,10 @@ func (do *DigitalOcean) VolumesAreAttached(volumeIDs []string, instanceID int) (
 			continue
 		}
 		for _, i := range volume.DropletIDs {
-			if(i == instanceID) {
+			if i == instanceID {
 				attached[volumeID] = true
 			}
 		}
 	}
 	return attached, nil
 }
-

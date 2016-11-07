@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"time"
 	"strconv"
+	"time"
 
 	"github.com/golang/glog"
 	"k8s.io/kubernetes/pkg/types"
@@ -32,8 +32,8 @@ import (
 )
 
 type doVolumeAttacher struct {
-	host           volume.VolumeHost
-	doProvider     DoProvider
+	host       volume.VolumeHost
+	doProvider DoProvider
 }
 
 var _ volume.Attacher = &doVolumeAttacher{}
@@ -50,7 +50,7 @@ func (plugin *doVolumePlugin) NewAttacher() (volume.Attacher, error) {
 		return nil, err
 	}
 	return &doVolumeAttacher{
-		host:      plugin.host,
+		host:       plugin.host,
 		doProvider: doProvider,
 	}, nil
 }
@@ -76,7 +76,7 @@ func (attacher *doVolumeAttacher) Attach(spec *volume.Spec, nodeName types.NodeN
 	if err != nil {
 		return "", err
 	}
-  intInstanceID, _ := strconv.Atoi(instanceID)
+	intInstanceID, _ := strconv.Atoi(instanceID)
 	attached, err := attacher.doProvider.VolumeIsAttached(volumeID, intInstanceID)
 	if err != nil {
 		// Log error and continue with attach
@@ -130,7 +130,7 @@ func (attacher *doVolumeAttacher) VolumesAreAttached(specs []*volume.Spec, nodeN
 	if err != nil {
 		return volumesAttachedCheck, err
 	}
-  intInstanceID, _ := strconv.Atoi(instanceID)
+	intInstanceID, _ := strconv.Atoi(instanceID)
 	attachedResult, err := attacher.doProvider.VolumesAreAttached(volumeIDList, intInstanceID)
 	if err != nil {
 		// Log error and continue with attach
@@ -231,8 +231,8 @@ func (attacher *doVolumeAttacher) MountDevice(spec *volume.Spec, devicePath stri
 }
 
 type doVolumeDetacher struct {
-	mounter        mount.Interface
-	doProvider     DoProvider
+	mounter    mount.Interface
+	doProvider DoProvider
 }
 
 var _ volume.Detacher = &doVolumeDetacher{}
@@ -243,7 +243,7 @@ func (plugin *doVolumePlugin) NewDetacher() (volume.Detacher, error) {
 		return nil, err
 	}
 	return &doVolumeDetacher{
-		mounter:        plugin.host.GetMounter(),
+		mounter:    plugin.host.GetMounter(),
 		doProvider: doProvider,
 	}, nil
 }
@@ -255,7 +255,7 @@ func (detacher *doVolumeDetacher) Detach(deviceMountPath string, nodeName types.
 		return fmt.Errorf("failed to list digitalocean instances")
 	}
 	instanceID, err := instances.InstanceID(nodeName)
-  intInstanceID, _ := strconv.Atoi(instanceID)
+	intInstanceID, _ := strconv.Atoi(instanceID)
 
 	attached, err := detacher.doProvider.VolumeIsAttached(volumeID, intInstanceID)
 	if err != nil {

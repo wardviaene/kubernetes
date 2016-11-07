@@ -42,7 +42,7 @@ func TestCreateDeleteVolume(t *testing.T) {
 	// Attach Volume
 	// Optionally pass instance ID to test volume attachments
 	strInstanceID := os.Getenv("DO_INSTANCEID")
-	if(strInstanceID != "") {
+	if strInstanceID != "" {
 		int64InstanceID, _ := strconv.ParseInt(strInstanceID, 10, 0)
 		instanceID := int(int64InstanceID)
 		_, err = do.AttachVolume(instanceID, volumeID)

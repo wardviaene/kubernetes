@@ -15,15 +15,16 @@ limitations under the License.
 */
 
 package digitalocean_volume
+
 import (
-	"os"
-	"time"
 	"errors"
-	"strconv"
 	"github.com/golang/glog"
 	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/volume"
 	"k8s.io/kubernetes/pkg/util/exec"
+	"k8s.io/kubernetes/pkg/volume"
+	"os"
+	"strconv"
+	"time"
 )
 
 type DoDiskUtil struct{}
@@ -74,7 +75,7 @@ func (util *DoDiskUtil) AttachVolume(d *doVolumeMounter, globalPDPath string) er
 		return err
 	}
 	instanceID, err := cloud.LocalInstanceID()
-  intInstanceID, _ := strconv.Atoi(instanceID)
+	intInstanceID, _ := strconv.Atoi(instanceID)
 	if err != nil {
 		return err
 	}
@@ -141,7 +142,7 @@ func (util *DoDiskUtil) DetachVolume(cd *doVolumeUnmounter) error {
 		return err
 	}
 	instanceID, err := cloud.LocalInstanceID()
-  intInstanceID, _ := strconv.Atoi(instanceID)
+	intInstanceID, _ := strconv.Atoi(instanceID)
 	if err != nil {
 		return err
 	}
@@ -165,4 +166,3 @@ func (util *DoDiskUtil) DeleteVolume(cd *doVolumeDeleter) error {
 	glog.V(2).Infof("Successfully deleted DigitalOcean volume %s", cd.pdName)
 	return nil
 }
-

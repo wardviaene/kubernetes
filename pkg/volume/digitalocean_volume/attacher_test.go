@@ -18,8 +18,8 @@ package digitalocean_volume
 
 import (
 	"errors"
+	"strconv"
 	"testing"
-  "strconv"
 
 	"k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/cloudprovider"
@@ -231,7 +231,7 @@ func newPlugin() *doVolumePlugin {
 
 func newAttacher(testcase *testcase) *doVolumeAttacher {
 	return &doVolumeAttacher{
-		host:           nil,
+		host:       nil,
 		doProvider: testcase,
 	}
 }
@@ -286,17 +286,17 @@ type detachCall struct {
 }
 
 type diskIsAttachedCall struct {
-	diskName             string
-	instanceID           int
-	isAttached           bool
-	ret                  error
+	diskName   string
+	instanceID int
+	isAttached bool
+	ret        error
 }
 
 type diskPathCall struct {
-	diskName             string
-	instanceID           int
-	retPath              string
-	ret                  error
+	diskName   string
+	instanceID int
+	retPath    string
+	ret        error
 }
 
 func (testcase *testcase) AttachVolume(instanceID int, diskName string) (string, error) {
@@ -429,7 +429,7 @@ func (testcase *testcase) VolumesAreAttached(diskNames []string, nodeName int) (
 	return nil, errors.New("Not implemented")
 }
 
-func (testcase *testcase) GetRegion() (string) {
+func (testcase *testcase) GetRegion() string {
 	return ""
 }
 
