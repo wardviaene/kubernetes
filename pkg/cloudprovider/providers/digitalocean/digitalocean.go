@@ -27,7 +27,7 @@ import (
 
 	"gopkg.in/gcfg.v1"
 
-	"github.com/digitalocean/godo"
+	"github.com/wardviaene/godo"
 	"golang.org/x/oauth2"
 
 	"github.com/golang/glog"

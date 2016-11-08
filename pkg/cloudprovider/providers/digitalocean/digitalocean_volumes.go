@@ -22,13 +22,23 @@ import (
 	"io/ioutil"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/golang/glog"
-	"github.com/digitalocean/godo"
+	"github.com/wardviaene/godo"
+	"k8s.io/kubernetes/pkg/util/wait"
 	"k8s.io/kubernetes/pkg/volume"
 )
 
 var ErrVolumeNotFound = errors.New("Failed to find volume")
+var ErrVolumePendingOperation = errors.New("Volume has pending operation")
+
+const (
+	checkSleepDuration = time.Second * 2 // check every 2 seconds
+)
+const (
+	checkTimeout = time.Second * 60 // for max 60 seconds
+)
 
 // Create a volume of given size (in GiB)
 func (do *DigitalOcean) CreateVolume(region string, name string, description string, sizeGigaBytes int64) (volumeName string, err error) {
@@ -79,13 +89,48 @@ func (do *DigitalOcean) volumeIsUsed(volumeID string) (bool, error) {
 
 // Attaches given DigitalOcean volume
 func (do *DigitalOcean) AttachVolume(instanceID int, volumeID string) (string, error) {
-	volume, err := do.getVolume(volumeID)
 	// volumeID = kubernetes volume ID
 	// volume.ID = DigitalOcean volume ID
+
+	volume, err := do.getVolume(volumeID)
 	if err != nil {
 		glog.Errorf("Failed to get DigitalOcean volume for volume: %s", volumeID)
 		return "", err
 	}
+
+	for _, dropletID := range volume.DropletIDs {
+		if instanceID == dropletID {
+			glog.V(2).Infof("Volume %s is already attached to %s compute, not reattaching", volumeID, instanceID)
+			return volume.ID, nil
+		}
+	}
+	if len(volume.DropletIDs) > 0 {
+		// There's still a volume attached, check whether detach is still in progress
+		err = wait.Poll(checkSleepDuration, checkTimeout, func() (bool, error) {
+			listOptions := &godo.ListOptions{
+				Page:    1,
+				PerPage: 1,
+			}
+			actions, _, err := do.provider.StorageActions.List(volume.ID, listOptions)
+			if err != nil {
+				glog.V(2).Infof("Failed to get pending led to attach volumeactions for volume %s (%s)", volumeID, volume.ID)
+			}
+			for _, action := range actions {
+				if action.Status == "completed" {
+					return true, nil
+				} else {
+					glog.V(2).Infof("Volume %s (%s) still has an operation pending (action: %s, status: %s)", volumeID, volume.ID, action.Type, action.Status)
+					return false, ErrVolumePendingOperation
+				}
+			}
+			// no action pending
+			return true, nil
+		})
+		if err != nil {
+			glog.V(2).Infof("Volume %s (%s) still has a pending operation, will try to attach anyway", volumeID, volume.ID)
+		}
+	}
+
 	_, _, err = do.provider.StorageActions.Attach(volume.ID, instanceID)
 	if err != nil {
 		glog.Errorf("Failed to attach %s (%s) volume to %s compute", volumeID, volume.ID, instanceID)
