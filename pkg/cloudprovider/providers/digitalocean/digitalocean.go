@@ -46,15 +46,7 @@ var ErrAttrNotFound = errors.New("Expected attribute not found")
 type DigitalOcean struct {
 	provider       *godo.Client
 	region         string
-	selfDOInstance *doInstance
-}
-
-type doInstance struct {
-	// Local droplet ID
-	dropletID int
-
-	// region the instance resides in
-	region string
+	selfDOInstance *doDroplet
 }
 
 type Config struct {
@@ -62,6 +54,15 @@ type Config struct {
 		ApiKey string `gcfg:"apikey"`
 		Region string `gcfg:"region"`
 	}
+}
+
+type doDroplet struct {
+	ID          int
+	Name        string
+	PrivateIPv4 string
+	PublicIPv4  string
+	SizeSlug    string
+	Region      string
 }
 
 func init() {
@@ -117,7 +118,9 @@ func newDigitalOcean(cfg Config) (*DigitalOcean, error) {
 	if err != nil {
 		return nil, err
 	}
-	glog.V(2).Infof("DigitalOcean Droplet region: %s, droplet ID: %d", selfDOInstance.region, selfDOInstance.dropletID)
+	do.selfDOInstance = selfDOInstance
+
+	glog.V(2).Infof("DigitalOcean Droplet with droplet ID: %d", do.selfDOInstance.ID)
 
 	return &do, nil
 }
@@ -158,6 +161,8 @@ func min(a, b int) int {
 	return b
 }
 func (do *DigitalOcean) findDroplet(name types.NodeName) (*godo.Droplet, error) {
+	// not in cache, do request
+	glog.V(2).Infof("DigitalOcean: doing findDroplet request for: %s", name)
 	listOptions := &godo.ListOptions{
 		Page:    1,
 		PerPage: 200,
@@ -168,6 +173,13 @@ func (do *DigitalOcean) findDroplet(name types.NodeName) (*godo.Droplet, error) 
 	}
 	for i := 0; i < len(droplets); i++ {
 		if strings.ToLower(string(name)) == strings.ToLower(droplets[i].Name) {
+			// cache droplet name and size if this is ourselves
+			if do.selfDOInstance.ID == droplets[i].ID {
+				err = do.cacheDroplet(&droplets[i])
+				if err != nil {
+					glog.V(2).Infof("Unable to cache droplet")
+				}
+			}
 			return &droplets[i], nil
 		}
 		ipv4, err := droplets[i].PrivateIPv4()
@@ -199,19 +211,28 @@ func (do *DigitalOcean) findDropletByFilter(filter string) ([]types.NodeName, er
 	return list, nil
 }
 func (do *DigitalOcean) NodeAddresses(name types.NodeName) ([]api.NodeAddress, error) {
+	internalIP := ""
+	externalIP := ""
+	if string(name) == do.selfDOInstance.Name {
+		// cached, get from selfDOInstance
+		internalIP = do.selfDOInstance.PrivateIPv4
+		externalIP = do.selfDOInstance.PublicIPv4
+	} else {
+		// do api call
+		droplet, err := do.findDroplet(name)
+		if err != nil {
+			return nil, err
+		}
+		internalIP, err = droplet.PrivateIPv4()
+		if err != nil {
+			return nil, err
+		}
+		externalIP, err = droplet.PublicIPv4()
+		if err != nil {
+			return nil, err
+		}
+	}
 	addresses := []api.NodeAddress{}
-	droplet, err := do.findDroplet(name)
-	if err != nil {
-		return nil, err
-	}
-	internalIP, err := droplet.PrivateIPv4()
-	if err != nil {
-		return nil, err
-	}
-	externalIP, err := droplet.PublicIPv4()
-	if err != nil {
-		return nil, err
-	}
 	addresses = append(addresses, api.NodeAddress{Type: api.NodeInternalIP, Address: internalIP})
 	// Legacy compatibility: the private ip was the legacy host ip
 	addresses = append(addresses, api.NodeAddress{Type: api.NodeLegacyHostIP, Address: internalIP})
@@ -219,32 +240,37 @@ func (do *DigitalOcean) NodeAddresses(name types.NodeName) ([]api.NodeAddress, e
 	return addresses, nil
 }
 func (do *DigitalOcean) ExternalID(nodeName types.NodeName) (string, error) {
-	droplet, err := do.findDroplet(nodeName)
-	if err != nil {
-		return "", cloudprovider.InstanceNotFound
-	} else {
-		return strconv.Itoa(droplet.ID), nil
-	}
+	return do.InstanceID(nodeName)
 }
 
 func (do *DigitalOcean) InstanceID(nodeName types.NodeName) (string, error) {
-	droplet, err := do.findDroplet(nodeName)
-	if err != nil {
-		return "", cloudprovider.InstanceNotFound
+	if string(nodeName) == do.selfDOInstance.Name {
+		// cached, get from selfDOInstance
+		return strconv.Itoa(do.selfDOInstance.ID), nil
 	} else {
-		return strconv.Itoa(droplet.ID), nil
+		droplet, err := do.findDroplet(nodeName)
+		if err != nil {
+			return "", cloudprovider.InstanceNotFound
+		} else {
+			return strconv.Itoa(droplet.ID), nil
+		}
 	}
 }
 func (do *DigitalOcean) LocalInstanceID() (string, error) {
-	return strconv.Itoa(do.selfDOInstance.dropletID), nil
+	return strconv.Itoa(do.selfDOInstance.ID), nil
 }
 
 func (do *DigitalOcean) InstanceType(nodeName types.NodeName) (string, error) {
-	droplet, err := do.findDroplet(nodeName)
-	if err != nil {
-		return "", cloudprovider.InstanceNotFound
+	if string(nodeName) == do.selfDOInstance.Name {
+		// cached, get from selfDOInstance
+		return do.selfDOInstance.SizeSlug, nil
 	} else {
-		return droplet.Size.Slug, nil
+		droplet, err := do.findDroplet(nodeName)
+		if err != nil {
+			return "", cloudprovider.InstanceNotFound
+		} else {
+			return droplet.SizeSlug, nil
+		}
 	}
 }
 func (do *DigitalOcean) List(filter string) ([]types.NodeName, error) {
@@ -261,11 +287,16 @@ func (do *DigitalOcean) AddSSHKeyToAllInstances(user string, keyData []byte) err
 	return errors.New("unimplemented")
 }
 func (do *DigitalOcean) CurrentNodeName(hostname string) (types.NodeName, error) {
-	droplet, err := do.findDroplet(types.NodeName(hostname))
-	if err != nil {
-		return "", cloudprovider.InstanceNotFound
+	if hostname == do.selfDOInstance.Name {
+		// cached, get from selfDOInstance
+		return types.NodeName(do.selfDOInstance.Name), nil
 	} else {
-		return types.NodeName(strings.ToLower(droplet.Name)), nil
+		droplet, err := do.findDroplet(types.NodeName(hostname))
+		if err != nil {
+			return "", cloudprovider.InstanceNotFound
+		} else {
+			return types.NodeName(strings.ToLower(droplet.Name)), nil
+		}
 	}
 }
 
@@ -276,13 +307,13 @@ func (do *DigitalOcean) GetRegion() string {
 // Zones
 func (do *DigitalOcean) GetZone() (cloudprovider.Zone, error) {
 	return cloudprovider.Zone{
-		FailureDomain: do.selfDOInstance.region,
-		Region:        do.selfDOInstance.region,
+		FailureDomain: do.selfDOInstance.Region,
+		Region:        do.selfDOInstance.Region,
 	}, nil
 }
 
 // metadata
-func (do *DigitalOcean) buildSelfDOInstance() (*doInstance, error) {
+func (do *DigitalOcean) buildSelfDOInstance() (*doDroplet, error) {
 	if do.selfDOInstance != nil {
 		panic("do not call buildSelfDOInstance directly")
 	}
@@ -310,9 +341,31 @@ func (do *DigitalOcean) buildSelfDOInstance() (*doInstance, error) {
 		return nil, err
 	}
 
-	self := &doInstance{
-		dropletID: intDropletID,
-		region:    string(dropletRegion),
+	self := &doDroplet{
+		ID:          intDropletID,
+		Name:        "",
+		PrivateIPv4: "",
+		PublicIPv4:  "",
+		Region:      string(dropletRegion),
 	}
 	return self, nil
+}
+
+func (do *DigitalOcean) cacheDroplet(droplet *godo.Droplet) error {
+	do.selfDOInstance.Name = strings.ToLower(droplet.Name)
+	do.selfDOInstance.Region = droplet.Region.Slug
+	do.selfDOInstance.SizeSlug = droplet.SizeSlug
+	privateIPv4, err := droplet.PrivateIPv4()
+	if err == nil {
+		do.selfDOInstance.PrivateIPv4 = ""
+	} else {
+		do.selfDOInstance.PrivateIPv4 = privateIPv4
+	}
+	publicIPv4, err := droplet.PublicIPv4()
+	if err == nil {
+		do.selfDOInstance.PublicIPv4 = ""
+	} else {
+		do.selfDOInstance.PublicIPv4 = publicIPv4
+	}
+	return nil
 }

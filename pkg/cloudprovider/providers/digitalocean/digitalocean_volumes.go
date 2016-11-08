@@ -23,8 +23,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/digitalocean/godo"
 	"github.com/golang/glog"
+	"github.com/digitalocean/godo"
 	"k8s.io/kubernetes/pkg/volume"
 )
 
@@ -102,7 +102,7 @@ func (do *DigitalOcean) DetachVolume(instanceID int, volumeID string) error {
 		glog.Errorf("Failed to get DigitalOcean volume for volume: %s", volumeID)
 		return err
 	}
-	_, _, err = do.provider.StorageActions.Detach(volume.ID)
+	_, _, err = do.provider.StorageActions.DetachByDropletID(volume.ID, instanceID)
 	if err != nil {
 		glog.Errorf("Failed to detach %s (%s) volume", volumeID, volume.ID)
 		return err

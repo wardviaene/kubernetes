@@ -27,6 +27,7 @@ import (
 	"k8s.io/kubernetes/pkg/types"
 	"k8s.io/kubernetes/pkg/util/exec"
 	"k8s.io/kubernetes/pkg/util/mount"
+	"k8s.io/kubernetes/pkg/util/wait"
 	"k8s.io/kubernetes/pkg/volume"
 	volumeutil "k8s.io/kubernetes/pkg/volume/util"
 )
@@ -162,29 +163,21 @@ func (attacher *doVolumeAttacher) WaitForAttach(spec *volume.Spec, devicePath st
 		return "", fmt.Errorf("WaitForAttach failed for DigitalOcean Volume %q: devicePath is empty.", volumeID)
 	}
 
-	ticker := time.NewTicker(checkSleepDuration)
-	defer ticker.Stop()
-	timer := time.NewTimer(timeout)
-	defer timer.Stop()
-
-	for {
+	err = wait.Poll(checkSleepDuration, timeout, func() (bool, error) {
+		glog.V(4).Infof("Checking DigitalOcean Volume %q (device path %s) is attached.", volumeID, devicePath)
 		probeAttachedVolume()
-		select {
-		case <-ticker.C:
-			glog.V(5).Infof("Checking DigitalOcean Volume %q is attached.", volumeID)
-			probeAttachedVolume()
-			exists, err := volumeutil.PathExists(devicePath)
-			if exists && err == nil {
-				glog.Infof("Successfully found attached DigitalOcean volume %q.", volumeID)
-				return devicePath, nil
-			} else {
-				//Log error, if any, and continue checking periodically
-				glog.Errorf("Error Stat DigitalOcean volume (%q) is attached: %v", volumeID, err)
-			}
-		case <-timer.C:
-			return "", fmt.Errorf("Could not find attached DigitalOcean volume %q. Timeout waiting for mount paths to be created.", volumeID)
+		exists, err := volumeutil.PathExists(devicePath)
+		if exists && err == nil {
+			glog.V(4).Infof("Successfully found attached DigitalOcean Volume %q (device path %s).", volumeID, devicePath)
+			return true, nil
+		} else {
+			//Log error, if any, and continue checking periodically
+			glog.V(4).Infof("Error Stat DigitalOcean volume (%q) is attached: %v", volumeID, err)
+			return false, nil
 		}
-	}
+	})
+
+	return devicePath, err
 }
 
 func (attacher *doVolumeAttacher) GetDeviceMountPath(
@@ -280,24 +273,16 @@ func (detacher *doVolumeDetacher) Detach(deviceMountPath string, nodeName types.
 }
 
 func (detacher *doVolumeDetacher) WaitForDetach(devicePath string, timeout time.Duration) error {
-	ticker := time.NewTicker(checkSleepDuration)
-	defer ticker.Stop()
-	timer := time.NewTimer(timeout)
-	defer timer.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			glog.V(5).Infof("Checking device %q is detached.", devicePath)
-			if pathExists, err := volumeutil.PathExists(devicePath); err != nil {
-				return fmt.Errorf("Error checking if device path exists: %v", err)
-			} else if !pathExists {
-				return nil
-			}
-		case <-timer.C:
-			return fmt.Errorf("Timeout reached; PD Device %v is still attached", devicePath)
+	return wait.Poll(checkSleepDuration, timeout, func() (bool, error) {
+		glog.V(4).Infof("Checking device %q is detached.", devicePath)
+		if pathExists, err := volumeutil.PathExists(devicePath); err != nil {
+			return false, fmt.Errorf("Error checking if device path exists: %v", err)
+		} else if !pathExists {
+			return true, nil
+		} else {
+			return false, nil
 		}
-	}
+	})
 }
 
 func (detacher *doVolumeDetacher) UnmountDevice(deviceMountPath string) error {
