@@ -164,13 +164,10 @@ func NewAlphaVolumeProvisioner(cloud cloudprovider.Interface, config componentco
 		return getProvisionablePluginFromVolumePlugins(vsphere_volume.ProbeVolumePlugins())
 	case cloud != nil && azure.CloudProviderName == cloud.ProviderName():
 		return getProvisionablePluginFromVolumePlugins(azure_dd.ProbeVolumePlugins())
-<<<<<<< ba7d8991b752162ab1d2a6f9438ccc03fe5e8ca8
 	case cloud != nil && photon.ProviderName == cloud.ProviderName():
 		return getProvisionablePluginFromVolumePlugins(photon_pd.ProbeVolumePlugins())
-=======
 	case cloud != nil && digitalocean.ProviderName == cloud.ProviderName():
 		return getProvisionablePluginFromVolumePlugins(digitalocean_volume.ProbeVolumePlugins())
->>>>>>> added digitalocean_volume package to cmd plugins
 	}
 	return nil, nil
 }

@@ -231,6 +231,8 @@ func RegisterConversions(scheme *runtime.Scheme) error {
 		Convert_api_PersistentVolumeSpec_To_v1_PersistentVolumeSpec,
 		Convert_v1_PersistentVolumeStatus_To_api_PersistentVolumeStatus,
 		Convert_api_PersistentVolumeStatus_To_v1_PersistentVolumeStatus,
+		Convert_v1_PhotonPersistentDiskVolumeSource_To_api_PhotonPersistentDiskVolumeSource,
+		Convert_api_PhotonPersistentDiskVolumeSource_To_v1_PhotonPersistentDiskVolumeSource,
 		Convert_v1_Pod_To_api_Pod,
 		Convert_api_Pod_To_v1_Pod,
 		Convert_v1_PodAffinity_To_api_PodAffinity,
@@ -2673,6 +2675,7 @@ func autoConvert_v1_PersistentVolumeSource_To_api_PersistentVolumeSource(in *Per
 	out.VsphereVolume = (*api.VsphereVirtualDiskVolumeSource)(unsafe.Pointer(in.VsphereVolume))
 	out.Quobyte = (*api.QuobyteVolumeSource)(unsafe.Pointer(in.Quobyte))
 	out.AzureDisk = (*api.AzureDiskVolumeSource)(unsafe.Pointer(in.AzureDisk))
+	out.PhotonPersistentDisk = (*api.PhotonPersistentDiskVolumeSource)(unsafe.Pointer(in.PhotonPersistentDisk))
 	out.DigitalOceanVolume = (*api.DigitalOceanVolumeSource)(unsafe.Pointer(in.DigitalOceanVolume))
 	return nil
 }
@@ -2698,6 +2701,7 @@ func autoConvert_api_PersistentVolumeSource_To_v1_PersistentVolumeSource(in *api
 	out.AzureFile = (*AzureFileVolumeSource)(unsafe.Pointer(in.AzureFile))
 	out.VsphereVolume = (*VsphereVirtualDiskVolumeSource)(unsafe.Pointer(in.VsphereVolume))
 	out.AzureDisk = (*AzureDiskVolumeSource)(unsafe.Pointer(in.AzureDisk))
+	out.PhotonPersistentDisk = (*PhotonPersistentDiskVolumeSource)(unsafe.Pointer(in.PhotonPersistentDisk))
 	out.DigitalOceanVolume = (*DigitalOceanVolumeSource)(unsafe.Pointer(in.DigitalOceanVolume))
 	return nil
 }
@@ -2756,6 +2760,26 @@ func autoConvert_api_PersistentVolumeStatus_To_v1_PersistentVolumeStatus(in *api
 
 func Convert_api_PersistentVolumeStatus_To_v1_PersistentVolumeStatus(in *api.PersistentVolumeStatus, out *PersistentVolumeStatus, s conversion.Scope) error {
 	return autoConvert_api_PersistentVolumeStatus_To_v1_PersistentVolumeStatus(in, out, s)
+}
+
+func autoConvert_v1_PhotonPersistentDiskVolumeSource_To_api_PhotonPersistentDiskVolumeSource(in *PhotonPersistentDiskVolumeSource, out *api.PhotonPersistentDiskVolumeSource, s conversion.Scope) error {
+	out.PdID = in.PdID
+	out.FSType = in.FSType
+	return nil
+}
+
+func Convert_v1_PhotonPersistentDiskVolumeSource_To_api_PhotonPersistentDiskVolumeSource(in *PhotonPersistentDiskVolumeSource, out *api.PhotonPersistentDiskVolumeSource, s conversion.Scope) error {
+	return autoConvert_v1_PhotonPersistentDiskVolumeSource_To_api_PhotonPersistentDiskVolumeSource(in, out, s)
+}
+
+func autoConvert_api_PhotonPersistentDiskVolumeSource_To_v1_PhotonPersistentDiskVolumeSource(in *api.PhotonPersistentDiskVolumeSource, out *PhotonPersistentDiskVolumeSource, s conversion.Scope) error {
+	out.PdID = in.PdID
+	out.FSType = in.FSType
+	return nil
+}
+
+func Convert_api_PhotonPersistentDiskVolumeSource_To_v1_PhotonPersistentDiskVolumeSource(in *api.PhotonPersistentDiskVolumeSource, out *PhotonPersistentDiskVolumeSource, s conversion.Scope) error {
+	return autoConvert_api_PhotonPersistentDiskVolumeSource_To_v1_PhotonPersistentDiskVolumeSource(in, out, s)
 }
 
 func autoConvert_v1_Pod_To_api_Pod(in *Pod, out *api.Pod, s conversion.Scope) error {
@@ -4292,6 +4316,7 @@ func autoConvert_v1_VolumeSource_To_api_VolumeSource(in *VolumeSource, out *api.
 	out.VsphereVolume = (*api.VsphereVirtualDiskVolumeSource)(unsafe.Pointer(in.VsphereVolume))
 	out.Quobyte = (*api.QuobyteVolumeSource)(unsafe.Pointer(in.Quobyte))
 	out.AzureDisk = (*api.AzureDiskVolumeSource)(unsafe.Pointer(in.AzureDisk))
+	out.PhotonPersistentDisk = (*api.PhotonPersistentDiskVolumeSource)(unsafe.Pointer(in.PhotonPersistentDisk))
 	out.DigitalOceanVolume = (*api.DigitalOceanVolumeSource)(unsafe.Pointer(in.DigitalOceanVolume))
 	return nil
 }
@@ -4323,6 +4348,7 @@ func autoConvert_api_VolumeSource_To_v1_VolumeSource(in *api.VolumeSource, out *
 	out.ConfigMap = (*ConfigMapVolumeSource)(unsafe.Pointer(in.ConfigMap))
 	out.VsphereVolume = (*VsphereVirtualDiskVolumeSource)(unsafe.Pointer(in.VsphereVolume))
 	out.AzureDisk = (*AzureDiskVolumeSource)(unsafe.Pointer(in.AzureDisk))
+	out.PhotonPersistentDisk = (*PhotonPersistentDiskVolumeSource)(unsafe.Pointer(in.PhotonPersistentDisk))
 	out.DigitalOceanVolume = (*DigitalOceanVolumeSource)(unsafe.Pointer(in.DigitalOceanVolume))
 	return nil
 }

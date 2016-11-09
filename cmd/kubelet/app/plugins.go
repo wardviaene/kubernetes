@@ -88,11 +88,8 @@ func ProbeVolumePlugins(pluginDir string) []volume.VolumePlugin {
 	allPlugins = append(allPlugins, configmap.ProbeVolumePlugins()...)
 	allPlugins = append(allPlugins, vsphere_volume.ProbeVolumePlugins()...)
 	allPlugins = append(allPlugins, azure_dd.ProbeVolumePlugins()...)
-<<<<<<< ba7d8991b752162ab1d2a6f9438ccc03fe5e8ca8
 	allPlugins = append(allPlugins, photon_pd.ProbeVolumePlugins()...)
-=======
 	allPlugins = append(allPlugins, digitalocean_volume.ProbeVolumePlugins()...)
->>>>>>> added digitalocean_volume package to cmd plugins
 	return allPlugins
 }
 

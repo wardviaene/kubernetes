@@ -341,9 +341,9 @@ func (DeleteOptions) SwaggerDoc() map[string]string {
 
 var map_DigitalOceanVolumeSource = map[string]string{
 	"":         "Represents a digitalocean volume resource.",
-	"volumeID": "volume id used to identify the volume in digitalocean More info: http://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md",
-	"fsType":   "Filesystem type to mount. Must be a filesystem type supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". Implicitly inferred to be \"ext4\" if unspecified.",
-	"readOnly": "Optional: Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts.",
+	"volumeID": "volume id used to identify the volume in cinder More info: http://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md",
+	"fsType":   "Filesystem type to mount. Must be a filesystem type supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". Implicitly inferred to be \"ext4\" if unspecified. More info: http://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md",
+	"readOnly": "Optional: Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts. More info: http://releases.k8s.io/HEAD/examples/mysql-cinder-pd/README.md",
 }
 
 func (DigitalOceanVolumeSource) SwaggerDoc() map[string]string {
@@ -1110,6 +1110,7 @@ var map_PersistentVolumeSource = map[string]string{
 	"quobyte":              "Quobyte represents a Quobyte mount on the host that shares a pod's lifetime",
 	"azureDisk":            "AzureDisk represents an Azure Data Disk mount on the host and bind mount to the pod.",
 	"photonPersistentDisk": "PhotonPersistentDisk represents a PhotonController persistent disk attached and mounted on kubelets host machine",
+	"digitaloceanVolume":   "digitaloceanVolume represents an Digital Ocean Volume mount on the host and bind mount to the pod.",
 }
 
 func (PersistentVolumeSource) SwaggerDoc() map[string]string {
@@ -1822,6 +1823,7 @@ var map_VolumeSource = map[string]string{
 	"quobyte":              "Quobyte represents a Quobyte mount on the host that shares a pod's lifetime",
 	"azureDisk":            "AzureDisk represents an Azure Data Disk mount on the host and bind mount to the pod.",
 	"photonPersistentDisk": "PhotonPersistentDisk represents a PhotonController persistent disk attached and mounted on kubelets host machine",
+	"digitaloceanVolume":   "DigitalOceanVolume represents an DigitalOcean Volume mount on the host and bind mount to the pod.",
 }
 
 func (VolumeSource) SwaggerDoc() map[string]string {
