@@ -29,17 +29,17 @@ import (
 
 type DoDiskUtil struct{}
 
-func (util *DoDiskUtil) CreateVolume(c *doVolumeProvisioner) (volumeID string, volumeSizeGB int, err error) {
-	cloud, err := c.plugin.getCloudProvider()
+func (util *DoDiskUtil) CreateVolume(d *doVolumeProvisioner) (volumeID string, volumeSizeGB int, err error) {
+	cloud, err := getCloudProvider(d.doVolume.plugin.host.GetCloudProvider())
 	if err != nil {
 		return "", 0, err
 	}
 
-	capacity := c.options.PVC.Spec.Resources.Requests[api.ResourceName(api.ResourceStorage)]
+	capacity := d.options.PVC.Spec.Resources.Requests[api.ResourceName(api.ResourceStorage)]
 	volSizeBytes := capacity.Value()
 	// DigitalOcean works with gigabytes, convert to GiB with rounding up
 	volSizeGB := int(volume.RoundUpSize(volSizeBytes, 1024*1024*1024))
-	name := volume.GenerateVolumeName(c.options.ClusterName, c.options.PVName, 255) // DigitalOcean volume name can have up to 255 characters
+	name := volume.GenerateVolumeName(d.options.ClusterName, d.options.PVName, 255) // DigitalOcean volume name can have up to 255 characters
 
 	name, err = cloud.CreateVolume(cloud.GetRegion(), name, name, int64(volSizeGB))
 	if err != nil {
@@ -70,7 +70,7 @@ func (util *DoDiskUtil) AttachVolume(d *doVolumeMounter, globalPDPath string) er
 	if d.readOnly {
 		options = append(options, "ro")
 	}
-	cloud, err := d.plugin.getCloudProvider()
+	cloud, err := getCloudProvider(d.doVolume.plugin.host.GetCloudProvider())
 	if err != nil {
 		return err
 	}
@@ -127,9 +127,9 @@ func (util *DoDiskUtil) AttachVolume(d *doVolumeMounter, globalPDPath string) er
 }
 
 // Unmounts the device and detaches the disk from the kubelet's host machine.
-func (util *DoDiskUtil) DetachVolume(cd *doVolumeUnmounter) error {
-	globalPDPath := makeGlobalPDName(cd.plugin.host, cd.pdName)
-	if err := cd.mounter.Unmount(globalPDPath); err != nil {
+func (util *DoDiskUtil) DetachVolume(d *doVolumeUnmounter) error {
+	globalPDPath := makeGlobalPDName(d.plugin.host, d.pdName)
+	if err := d.mounter.Unmount(globalPDPath); err != nil {
 		return err
 	}
 	if err := os.Remove(globalPDPath); err != nil {
@@ -137,7 +137,7 @@ func (util *DoDiskUtil) DetachVolume(cd *doVolumeUnmounter) error {
 	}
 	glog.V(2).Infof("Successfully unmounted main device: %s\n", globalPDPath)
 
-	cloud, err := cd.plugin.getCloudProvider()
+	cloud, err := getCloudProvider(d.doVolume.plugin.host.GetCloudProvider())
 	if err != nil {
 		return err
 	}
@@ -146,23 +146,23 @@ func (util *DoDiskUtil) DetachVolume(cd *doVolumeUnmounter) error {
 	if err != nil {
 		return err
 	}
-	if err = cloud.DetachVolume(intInstanceID, cd.pdName); err != nil {
+	if err = cloud.DetachVolume(intInstanceID, d.pdName); err != nil {
 		return err
 	}
-	glog.V(2).Infof("Successfully detached DigitalOcean volume %s", cd.pdName)
+	glog.V(2).Infof("Successfully detached DigitalOcean volume %s", d.pdName)
 	return nil
 }
 
-func (util *DoDiskUtil) DeleteVolume(cd *doVolumeDeleter) error {
-	cloud, err := cd.plugin.getCloudProvider()
+func (util *DoDiskUtil) DeleteVolume(d *doVolumeDeleter) error {
+	cloud, err := getCloudProvider(d.doVolume.plugin.host.GetCloudProvider())
 	if err != nil {
 		return err
 	}
 
-	if err = cloud.DeleteVolume(cd.pdName); err != nil {
-		glog.V(2).Infof("Error deleting DigitalOcean volume %s: %v", cd.pdName, err)
+	if err = cloud.DeleteVolume(d.pdName); err != nil {
+		glog.V(2).Infof("Error deleting DigitalOcean volume %s: %v", d.pdName, err)
 		return err
 	}
-	glog.V(2).Infof("Successfully deleted DigitalOcean volume %s", cd.pdName)
+	glog.V(2).Infof("Successfully deleted DigitalOcean volume %s", d.pdName)
 	return nil
 }

@@ -17,7 +17,6 @@ limitations under the License.
 package digitalocean_volume
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -389,7 +388,8 @@ func getCloudProvider(cloudProvider cloudprovider.Interface) (DoProvider, error)
 	}
 	return nil, fmt.Errorf("Could not initialize cloud provider")
 }
-func (plugin *doVolumePlugin) getCloudProvider() (DoProvider, error) {
+
+/*func (plugin *doVolumePlugin) getCloudProvider() (DoProvider, error) {
 	cloud := plugin.host.GetCloudProvider()
 	if cloud == nil {
 		glog.Errorf("Cloud provider not initialized properly")
@@ -402,7 +402,7 @@ func (plugin *doVolumePlugin) getCloudProvider() (DoProvider, error) {
 	default:
 		return nil, errors.New("Invalid cloud provider: expected DigitalOcean.")
 	}
-}
+}*/
 
 // Deleter
 type doVolumeDeleter struct {

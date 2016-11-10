@@ -167,7 +167,7 @@ func (do *DigitalOcean) getVolume(volumeID string) (*godo.Volume, error) {
 		return nil, err
 	}
 	for _, volume := range volumes {
-		if volume.Name == volumeID {
+		if volume.Name == volumeID || volume.ID == volumeID {
 			return &volume, nil
 		}
 	}
