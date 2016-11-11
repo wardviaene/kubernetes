@@ -492,6 +492,7 @@ func (plugin *doVolumePlugin) newProvisionerInternal(options volume.VolumeOption
 			plugin:  plugin,
 		},
 		options: options,
+		plugin: plugin,
 	}, nil
 }
 
