@@ -1,0 +1,4 @@
+[submodule "vendor/github.com/wardviaene/godo"]
+        path = vendor/github.com/wardviaene/godo
+        url = https://github.com/wardviaene/godo.git
+        branch = DetachByDropletID
