@@ -217,6 +217,10 @@ func (b *doVolumeMounter) SetUp(fsGroup *int64) error {
 	return b.SetUpAt(b.GetPath(), fsGroup)
 }
 
+func (b *doVolumeMounter) CanMount() error {
+	return nil
+}
+
 // SetUp bind mounts to the volume path.
 func (b *doVolumeMounter) SetUpAt(dir string, fsGroup *int64) error {
 	glog.V(5).Infof("DigitalOcean Volume SetUp %s to %s", b.pdName, dir)
