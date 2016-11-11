@@ -312,40 +312,64 @@ func (do *DigitalOcean) GetZone() (cloudprovider.Zone, error) {
 	}, nil
 }
 
+// TODO: mock this in tests
+func getValueFromDOMetadata(path string) (string, error) {
+	resp, err := http.Get("http://169.254.169.254/metadata/v1/" + path)
+	if err != nil {
+		glog.V(2).Infof("error fetching %v from metadata service: %v", path, err)
+		return "", err
+	}
+	defer resp.Body.Close()
+	value, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		glog.V(2).Infof("error reading droplet %v: %v", path, err)
+		return "", err
+	}
+	return string(value), nil
+}
+
 // metadata
 func (do *DigitalOcean) buildSelfDOInstance() (*doDroplet, error) {
 	if do.selfDOInstance != nil {
 		panic("do not call buildSelfDOInstance directly")
 	}
 
-	// get region
-	resp, err := http.Get("http://169.254.169.254/metadata/v1/region")
+	dropletRegion, err := getValueFromDOMetadata("region")
 	if err != nil {
-		glog.V(2).Infof("error fetching region from metadata service: %v", err)
 		return nil, err
 	}
-	defer resp.Body.Close()
-	dropletRegion, err := ioutil.ReadAll(resp.Body)
 
-	// get droplet id
-	resp, err = http.Get("http://169.254.169.254/metadata/v1/id")
+	dropletID, err := getValueFromDOMetadata("id")
 	if err != nil {
-		glog.V(2).Infof("error fetching droplet id from metadata service: %v", err)
 		return nil, err
-	}
-	defer resp.Body.Close()
-	dropletID, err := ioutil.ReadAll(resp.Body)
+	}	
 	intDropletID, err := strconv.Atoi(string(dropletID))
 	if err != nil {
-		glog.V(2).Infof("dropletID is invalid")
+		glog.V(2).Infof("dropletID %v is invalid, expected an integer", dropletID)
 		return nil, err
 	}
+
+	hostname, err := getValueFromDOMetadata("hostname")
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: figure out what happens if there is no private IP
+	privateIPv4, err := getValueFromDOMetadata("interfaces/private/0/ipv4/address")
+	if err != nil {
+		return nil, err
+	}
+
+	publicIPv4, err := getValueFromDOMetadata("interfaces/public/0/ipv4/address")
+	if err != nil {
+		return nil, err
+	}	
 
 	self := &doDroplet{
 		ID:          intDropletID,
-		Name:        "",
-		PrivateIPv4: "",
-		PublicIPv4:  "",
+		Name:        string(hostname),
+		PrivateIPv4: string(privateIPv4),
+		PublicIPv4:  string(publicIPv4),
 		Region:      string(dropletRegion),
 	}
 	return self, nil
