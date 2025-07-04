@@ -24,7 +24,7 @@ import (
 
 const (
 	content = "Hello from the other side. I must have called a thousand times."
-	secret  = "my voice is my passcode"
+	secret  = "my voice is my passcode. my voice is my passcode"
 	id      = "joshua"
 )
 
@@ -33,7 +33,7 @@ func TestComputeDetachedSignature(t *testing.T) {
 	assert.NoError(t, err, "Error when computing signature: %v", err)
 	assert.Equal(
 		t,
-		"eyJhbGciOiJIUzI1NiIsImtpZCI6Impvc2h1YSJ9..VShe2taLd-YTrmWuRkcL_8QTNDHYxQIEBsAYYiIj1_8",
+		"eyJhbGciOiJIUzI1NiIsImtpZCI6Impvc2h1YSJ9..SFoKn0-YxqnvpSExt4LuCZ_7pvIBdX3SoUO_NsTpkdg",
 		sig,
 		"Wrong signature. Got: %v", sig)
 
@@ -42,23 +42,15 @@ func TestComputeDetachedSignature(t *testing.T) {
 	assert.NoError(t, err, "Error when computing signature: %v", err)
 	assert.Equal(
 		t,
-		"eyJhbGciOiJIUzI1NiIsImtpZCI6Impvc2h1YSJ9..7Ui1ALizW4jXphVUB7xUqC9vLYLL9RZeOFfVLoB7Tgk",
+		"eyJhbGciOiJIUzI1NiIsImtpZCI6Impvc2h1YSJ9..kzZha466Sbz_vFhUBjjYp2rl3F7yHgdDdUIBGxQg4js",
 		sig,
 		"Wrong signature. Got: %v", sig)
 
-	// Try with no secret
-	sig, err = ComputeDetachedSignature(content, id, "")
-	assert.NoError(t, err, "Error when computing signature: %v", err)
-	assert.Equal(
-		t,
-		"eyJhbGciOiJIUzI1NiIsImtpZCI6Impvc2h1YSJ9..UfkqvDGiIFxrMnFseDj9LYJOLNrvjW8aHhF71mvvAs8",
-		sig,
-		"Wrong signature. Got: %v", sig)
 }
 
 func TestDetachedTokenIsValid(t *testing.T) {
 	// Valid detached JWS token and valid inputs should succeed
-	sig := "eyJhbGciOiJIUzI1NiIsImtpZCI6Impvc2h1YSJ9..VShe2taLd-YTrmWuRkcL_8QTNDHYxQIEBsAYYiIj1_8"
+	sig := "eyJhbGciOiJIUzI1NiIsImtpZCI6Impvc2h1YSJ9..SFoKn0-YxqnvpSExt4LuCZ_7pvIBdX3SoUO_NsTpkdg"
 	assert.True(t, DetachedTokenIsValid(sig, content, id, secret),
 		"Content %q and token \"%s:%s\" should equal signature: %q", content, id, secret, sig)
 

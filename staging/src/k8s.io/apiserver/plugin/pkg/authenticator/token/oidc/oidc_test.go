@@ -34,7 +34,7 @@ import (
 	"text/template"
 	"time"
 
-	"gopkg.in/go-jose/go-jose.v2"
+	"github.com/go-jose/go-jose/v4"
 
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/apis/apiserver"
@@ -107,7 +107,7 @@ type staticKeySet struct {
 }
 
 func (s *staticKeySet) VerifySignature(ctx context.Context, jwt string) (payload []byte, err error) {
-	jws, err := jose.ParseSigned(jwt)
+	jws, err := jose.ParseSigned(jwt, []jose.SignatureAlgorithm{jose.EdDSA, jose.HS256, jose.HS384, jose.HS512, jose.RS256, jose.RS384, jose.RS512, jose.ES256, jose.ES384, jose.ES512, jose.PS256, jose.PS384, jose.PS512, jose.ES256})
 	if err != nil {
 		return nil, err
 	}
@@ -1908,7 +1908,7 @@ func TestToken(t *testing.T) {
 				"username": "jane",
 				"exp": %d
 			}`, valid.Unix()),
-			wantErr: `oidc: verify token: oidc: id token signed with unsupported algorithm, expected ["RS256"] got "PS256"`,
+			wantErr: `oidc: verify token: oidc: malformed jwt: unexpected signature algorithm "PS256"; expected ["RS256"]`,
 		},
 		{
 			name: "ps256",

@@ -8,10 +8,11 @@ godebug default=go1.24
 
 require (
 	github.com/blang/semver/v4 v4.0.0
-	github.com/coreos/go-oidc v2.3.0+incompatible
+	github.com/coreos/go-oidc/v3 v3.14.1
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/emicklei/go-restful/v3 v3.12.2
 	github.com/fsnotify/fsnotify v1.9.0
+	github.com/go-jose/go-jose/v4 v4.1.1
 	github.com/go-logr/logr v1.4.2
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/btree v1.1.3
@@ -37,16 +38,15 @@ require (
 	go.opentelemetry.io/otel/sdk v1.34.0
 	go.opentelemetry.io/otel/trace v1.35.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/crypto v0.36.0
-	golang.org/x/net v0.38.0
-	golang.org/x/sync v0.12.0
-	golang.org/x/sys v0.31.0
+	golang.org/x/crypto v0.39.0
+	golang.org/x/net v0.40.0
+	golang.org/x/sync v0.15.0
+	golang.org/x/sys v0.33.0
 	golang.org/x/time v0.9.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250303144028-a0af3efb3deb
 	google.golang.org/grpc v1.72.1
 	google.golang.org/protobuf v1.36.5
 	gopkg.in/evanphx/json-patch.v4 v4.12.0
-	gopkg.in/go-jose/go-jose.v2 v2.6.3
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
@@ -95,7 +95,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/pquerna/cachecontrol v0.1.0 // indirect
 	github.com/prometheus/client_golang v1.22.0 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
@@ -117,9 +116,9 @@ require (
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/oauth2 v0.27.0 // indirect
-	golang.org/x/term v0.30.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/oauth2 v0.28.0 // indirect
+	golang.org/x/term v0.32.0 // indirect
+	golang.org/x/text v0.26.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250303144028-a0af3efb3deb // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
