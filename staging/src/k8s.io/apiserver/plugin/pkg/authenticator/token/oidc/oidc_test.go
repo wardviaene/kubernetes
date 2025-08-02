@@ -36,7 +36,7 @@ import (
 	"text/template"
 	"time"
 
-	"gopkg.in/go-jose/go-jose.v2"
+	"github.com/go-jose/go-jose/v4"
 
 	utilnet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -111,7 +111,7 @@ type staticKeySet struct {
 }
 
 func (s *staticKeySet) VerifySignature(ctx context.Context, jwt string) (payload []byte, err error) {
-	jws, err := jose.ParseSigned(jwt)
+	jws, err := jose.ParseSigned(jwt, []jose.SignatureAlgorithm{jose.EdDSA, jose.HS256, jose.HS384, jose.HS512, jose.RS256, jose.RS384, jose.RS512, jose.ES256, jose.ES384, jose.ES512, jose.PS256, jose.PS384, jose.PS512, jose.ES256})
 	if err != nil {
 		return nil, err
 	}

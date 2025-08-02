@@ -20,7 +20,7 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/container-storage-interface/spec v1.9.0
 	github.com/coredns/corefile-migration v1.0.26
-	github.com/coreos/go-oidc v2.3.0+incompatible
+	github.com/coreos/go-oidc/v3 v3.15.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/cpuguy83/go-md2man/v2 v2.0.6
 	github.com/cyphar/filepath-securejoin v0.4.1
@@ -28,6 +28,7 @@ require (
 	github.com/docker/go-units v0.5.0
 	github.com/emicklei/go-restful/v3 v3.12.2
 	github.com/fsnotify/fsnotify v1.9.0
+	github.com/go-jose/go-jose/v4 v4.0.5
 	github.com/go-logr/logr v1.4.2
 	github.com/go-openapi/jsonreference v0.20.2
 	github.com/godbus/dbus/v5 v5.1.0
@@ -74,7 +75,7 @@ require (
 	go.yaml.in/yaml/v2 v2.4.2
 	golang.org/x/crypto v0.36.0
 	golang.org/x/net v0.38.0
-	golang.org/x/oauth2 v0.27.0
+	golang.org/x/oauth2 v0.28.0
 	golang.org/x/sync v0.12.0
 	golang.org/x/sys v0.31.0
 	golang.org/x/term v0.30.0
@@ -84,7 +85,6 @@ require (
 	google.golang.org/grpc v1.72.1
 	google.golang.org/protobuf v1.36.5
 	gopkg.in/evanphx/json-patch.v4 v4.12.0
-	gopkg.in/go-jose/go-jose.v2 v2.6.3
 	k8s.io/api v0.0.0
 	k8s.io/apiextensions-apiserver v0.0.0
 	k8s.io/apimachinery v0.0.0
@@ -188,7 +188,6 @@ require (
 	github.com/opencontainers/runtime-spec v1.2.0 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pquerna/cachecontrol v0.1.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
